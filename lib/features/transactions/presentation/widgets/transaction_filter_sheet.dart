@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/database/database.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/sheet_widgets.dart';
 import '../../../accounts/data/accounts_repository.dart';
@@ -105,23 +106,30 @@ class _TransactionFilterSheet extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                const SheetFieldLabel('Categories'),
-                const SizedBox(height: 8),
                 categoriesAsync.when(
                   data: (categories) {
                     if (categories.isEmpty) {
-                      return Text('No categories yet.', style: TextStyle(color: colors.textSecondary));
+                      return const SheetFieldLabel('Categories');
                     }
-                    return Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: categories
-                          .map((c) => SheetChip(
-                                label: c.name,
-                                selected: selectedCategoryIds.contains(c.id),
-                                onTap: () => _toggle(ref, selectedCategoryIdsProvider, c.id),
-                              ))
-                          .toList(),
+                    final expenseCategories = categories.where((c) => c.type == 'expense' || c.type == 'both').toList();
+                    final incomeCategories = categories.where((c) => c.type == 'income' || c.type == 'both').toList();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _CategoryGroup(
+                          label: 'Expense categories',
+                          categories: expenseCategories,
+                          selectedCategoryIds: selectedCategoryIds,
+                          onTap: (id) => _toggle(ref, selectedCategoryIdsProvider, id),
+                        ),
+                        const SizedBox(height: 16),
+                        _CategoryGroup(
+                          label: 'Income categories',
+                          categories: incomeCategories,
+                          selectedCategoryIds: selectedCategoryIds,
+                          onTap: (id) => _toggle(ref, selectedCategoryIdsProvider, id),
+                        ),
+                      ],
                     );
                   },
                   loading: () => const LinearProgressIndicator(),
@@ -184,5 +192,49 @@ class _TransactionFilterSheet extends ConsumerWidget {
     final next = Set<int>.from(current);
     if (!next.remove(id)) next.add(id);
     ref.read(provider.notifier).state = next;
+  }
+}
+
+/// One of the Filter sheet's two category sections (added 2026-11-20, user
+/// request — the single flat category list didn't distinguish expense from
+/// income categories, which reads oddly once a user has both "Salary" and
+/// "Food" chips side by side with no grouping). A `type == 'both'` category
+/// appears in both sections, since it's valid for either transaction type —
+/// matches how the add/edit transaction sheet already filters categories by
+/// `c.type == _type || c.type == 'both'`.
+class _CategoryGroup extends StatelessWidget {
+  const _CategoryGroup({
+    required this.label,
+    required this.categories,
+    required this.selectedCategoryIds,
+    required this.onTap,
+  });
+
+  final String label;
+  final List<Category> categories;
+  final Set<int> selectedCategoryIds;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    if (categories.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SheetFieldLabel(label),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: categories
+              .map((c) => SheetChip(
+                    label: c.name,
+                    selected: selectedCategoryIds.contains(c.id),
+                    onTap: () => onTap(c.id),
+                  ))
+              .toList(),
+        ),
+      ],
+    );
   }
 }
