@@ -40,6 +40,7 @@ class TransactionsRepository {
     required String currency,
     required DateTime date,
     String? note,
+    String? description,
   }) {
     return _db.into(_db.transactions).insert(
           TransactionsCompanion.insert(
@@ -50,6 +51,7 @@ class TransactionsRepository {
             currency: currency,
             date: date,
             note: Value(note),
+            description: Value(description),
           ),
         );
   }
@@ -62,6 +64,7 @@ class TransactionsRepository {
     int? amountMinorUnits,
     DateTime? date,
     String? note,
+    String? description,
     bool? isPendingReview,
   }) {
     return (_db.update(_db.transactions)..where((t) => t.id.equals(id))).write(
@@ -73,6 +76,7 @@ class TransactionsRepository {
             amountMinorUnits != null ? Value(amountMinorUnits) : const Value.absent(),
         date: date != null ? Value(date) : const Value.absent(),
         note: Value(note),
+        description: Value(description),
         isPendingReview: isPendingReview != null ? Value(isPendingReview) : const Value.absent(),
         updatedAt: Value(DateTime.now()),
       ),

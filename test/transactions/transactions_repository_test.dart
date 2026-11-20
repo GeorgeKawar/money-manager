@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:money_manager/core/database/database.dart';
@@ -146,6 +146,40 @@ void main() {
       final summary = await repo.watchPeriodSummary(range, categoryIds: {1}, accountIds: {1}).first;
 
       expect(summary.expenseMinorUnits, 1000);
+    });
+  });
+
+  group('description field', () {
+    test('addTransaction persists a description distinct from note', () async {
+      final id = await repo.addTransaction(
+        accountId: 1,
+        type: 'expense',
+        amountMinorUnits: 1000,
+        currency: 'USD',
+        date: DateTime(2026, 11, 20),
+        note: 'Groceries',
+        description: 'Weekly shop at the market',
+      );
+
+      final row = await (db.select(db.transactions)..where((t) => t.id.equals(id))).getSingle();
+      expect(row.note, 'Groceries');
+      expect(row.description, 'Weekly shop at the market');
+    });
+
+    test('updateTransaction can set and clear the description', () async {
+      final id = await repo.addTransaction(
+        accountId: 1,
+        type: 'expense',
+        amountMinorUnits: 1000,
+        currency: 'USD',
+        date: DateTime(2026, 11, 20),
+        description: 'Original detail',
+      );
+
+      await repo.updateTransaction(id, description: null);
+
+      final row = await (db.select(db.transactions)..where((t) => t.id.equals(id))).getSingle();
+      expect(row.description, isNull);
     });
   });
 }

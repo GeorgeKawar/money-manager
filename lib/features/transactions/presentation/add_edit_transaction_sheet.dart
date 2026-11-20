@@ -45,6 +45,7 @@ class _AddEditTransactionSheetState extends ConsumerState<_AddEditTransactionShe
   late String _type;
   final _amountController = TextEditingController();
   final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
   late DateTime _selectedDate;
   int? _accountId;
   int? _categoryId;
@@ -64,6 +65,7 @@ class _AddEditTransactionSheetState extends ConsumerState<_AddEditTransactionShe
       _amountController.text =
           (existing.amountMinorUnits / 1000).toStringAsFixed(decimalDigits);
       _nameController.text = existing.note ?? '';
+      _descriptionController.text = existing.description ?? '';
     }
   }
 
@@ -71,6 +73,7 @@ class _AddEditTransactionSheetState extends ConsumerState<_AddEditTransactionShe
   void dispose() {
     _amountController.dispose();
     _nameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -166,6 +169,23 @@ class _AddEditTransactionSheetState extends ConsumerState<_AddEditTransactionShe
                     border: InputBorder.none,
                     hintText: _namePlaceholder,
                     hintStyle: TextStyle(color: colors.textMuted, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const SheetFieldLabel('Description (optional)'),
+              const SizedBox(height: 8),
+              SheetFieldBox(
+                child: TextField(
+                  controller: _descriptionController,
+                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w500),
+                  maxLines: 3,
+                  minLines: 1,
+                  decoration: InputDecoration(
+                    isCollapsed: true,
+                    border: InputBorder.none,
+                    hintText: 'Extra detail, e.g. what this was for',
+                    hintStyle: TextStyle(color: colors.textMuted, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),
@@ -296,6 +316,7 @@ class _AddEditTransactionSheetState extends ConsumerState<_AddEditTransactionShe
 
     final amountMinorUnits = (amount * 1000).round();
     final name = _nameController.text.trim();
+    final description = _descriptionController.text.trim();
     final repo = ref.read(transactionsRepositoryProvider);
 
     if (_isEditing) {
@@ -307,6 +328,7 @@ class _AddEditTransactionSheetState extends ConsumerState<_AddEditTransactionShe
         amountMinorUnits: amountMinorUnits,
         date: _selectedDate,
         note: name,
+        description: description.isEmpty ? null : description,
         isPendingReview: widget.confirmOnSave ? false : null,
       );
     } else {
@@ -318,6 +340,7 @@ class _AddEditTransactionSheetState extends ConsumerState<_AddEditTransactionShe
         currency: currency,
         date: _selectedDate,
         note: name,
+        description: description.isEmpty ? null : description,
       );
     }
     if (mounted) Navigator.of(context).pop();

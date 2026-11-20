@@ -119,6 +119,10 @@ class Transactions extends Table {
   TextColumn get currency => text()();
   DateTimeColumn get date => dateTime()();
   TextColumn get note => text().nullable()();
+  // Free-text detail distinct from `note` (shown as the transaction's
+  // required "Name" in the add/edit sheet) — added 2026-11-20, user
+  // request, for extra detail beyond the short name.
+  TextColumn get description => text().nullable()();
   // 'manual' | 'notification' | 'recurring'
   TextColumn get source => text().withDefault(const Constant('manual'))();
   TextColumn get sourceAppPackage => text().nullable()();

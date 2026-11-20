@@ -113,6 +113,15 @@ class _ReviewRow extends ConsumerWidget {
                       '${item.accountName} · ${relativeDateTimeLabel(txn.date)}',
                       style: TextStyle(color: colors.textMuted, fontSize: 12),
                     ),
+                    if (txn.description?.isNotEmpty == true) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        txn.description!,
+                        style: TextStyle(color: colors.textMuted, fontSize: 12),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
                 ),
               ),

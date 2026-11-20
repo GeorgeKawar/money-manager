@@ -3007,6 +3007,17 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _sourceMeta = const VerificationMeta('source');
   @override
   late final GeneratedColumn<String> source = GeneratedColumn<String>(
@@ -3127,6 +3138,7 @@ class $TransactionsTable extends Transactions
     currency,
     date,
     note,
+    description,
     source,
     sourceAppPackage,
     sourceRuleId,
@@ -3205,6 +3217,15 @@ class $TransactionsTable extends Transactions
       context.handle(
         _noteMeta,
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
       );
     }
     if (data.containsKey('source')) {
@@ -3320,6 +3341,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
       source: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}source'],
@@ -3374,6 +3399,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   final String currency;
   final DateTime date;
   final String? note;
+  final String? description;
   final String source;
   final String? sourceAppPackage;
   final int? sourceRuleId;
@@ -3392,6 +3418,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     required this.currency,
     required this.date,
     this.note,
+    this.description,
     required this.source,
     this.sourceAppPackage,
     this.sourceRuleId,
@@ -3416,6 +3443,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     map['date'] = Variable<DateTime>(date);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
     }
     map['source'] = Variable<String>(source);
     if (!nullToAbsent || sourceAppPackage != null) {
@@ -3453,6 +3483,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       currency: Value(currency),
       date: Value(date),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
       source: Value(source),
       sourceAppPackage: sourceAppPackage == null && nullToAbsent
           ? const Value.absent()
@@ -3489,6 +3522,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       currency: serializer.fromJson<String>(json['currency']),
       date: serializer.fromJson<DateTime>(json['date']),
       note: serializer.fromJson<String?>(json['note']),
+      description: serializer.fromJson<String?>(json['description']),
       source: serializer.fromJson<String>(json['source']),
       sourceAppPackage: serializer.fromJson<String?>(json['sourceAppPackage']),
       sourceRuleId: serializer.fromJson<int?>(json['sourceRuleId']),
@@ -3514,6 +3548,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       'currency': serializer.toJson<String>(currency),
       'date': serializer.toJson<DateTime>(date),
       'note': serializer.toJson<String?>(note),
+      'description': serializer.toJson<String?>(description),
       'source': serializer.toJson<String>(source),
       'sourceAppPackage': serializer.toJson<String?>(sourceAppPackage),
       'sourceRuleId': serializer.toJson<int?>(sourceRuleId),
@@ -3537,6 +3572,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     String? currency,
     DateTime? date,
     Value<String?> note = const Value.absent(),
+    Value<String?> description = const Value.absent(),
     String? source,
     Value<String?> sourceAppPackage = const Value.absent(),
     Value<int?> sourceRuleId = const Value.absent(),
@@ -3555,6 +3591,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     currency: currency ?? this.currency,
     date: date ?? this.date,
     note: note.present ? note.value : this.note,
+    description: description.present ? description.value : this.description,
     source: source ?? this.source,
     sourceAppPackage: sourceAppPackage.present
         ? sourceAppPackage.value
@@ -3585,6 +3622,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       currency: data.currency.present ? data.currency.value : this.currency,
       date: data.date.present ? data.date.value : this.date,
       note: data.note.present ? data.note.value : this.note,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
       source: data.source.present ? data.source.value : this.source,
       sourceAppPackage: data.sourceAppPackage.present
           ? data.sourceAppPackage.value
@@ -3620,6 +3660,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           ..write('currency: $currency, ')
           ..write('date: $date, ')
           ..write('note: $note, ')
+          ..write('description: $description, ')
           ..write('source: $source, ')
           ..write('sourceAppPackage: $sourceAppPackage, ')
           ..write('sourceRuleId: $sourceRuleId, ')
@@ -3643,6 +3684,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     currency,
     date,
     note,
+    description,
     source,
     sourceAppPackage,
     sourceRuleId,
@@ -3665,6 +3707,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           other.currency == this.currency &&
           other.date == this.date &&
           other.note == this.note &&
+          other.description == this.description &&
           other.source == this.source &&
           other.sourceAppPackage == this.sourceAppPackage &&
           other.sourceRuleId == this.sourceRuleId &&
@@ -3685,6 +3728,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<String> currency;
   final Value<DateTime> date;
   final Value<String?> note;
+  final Value<String?> description;
   final Value<String> source;
   final Value<String?> sourceAppPackage;
   final Value<int?> sourceRuleId;
@@ -3703,6 +3747,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.currency = const Value.absent(),
     this.date = const Value.absent(),
     this.note = const Value.absent(),
+    this.description = const Value.absent(),
     this.source = const Value.absent(),
     this.sourceAppPackage = const Value.absent(),
     this.sourceRuleId = const Value.absent(),
@@ -3722,6 +3767,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     required String currency,
     required DateTime date,
     this.note = const Value.absent(),
+    this.description = const Value.absent(),
     this.source = const Value.absent(),
     this.sourceAppPackage = const Value.absent(),
     this.sourceRuleId = const Value.absent(),
@@ -3745,6 +3791,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Expression<String>? currency,
     Expression<DateTime>? date,
     Expression<String>? note,
+    Expression<String>? description,
     Expression<String>? source,
     Expression<String>? sourceAppPackage,
     Expression<int>? sourceRuleId,
@@ -3764,6 +3811,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       if (currency != null) 'currency': currency,
       if (date != null) 'date': date,
       if (note != null) 'note': note,
+      if (description != null) 'description': description,
       if (source != null) 'source': source,
       if (sourceAppPackage != null) 'source_app_package': sourceAppPackage,
       if (sourceRuleId != null) 'source_rule_id': sourceRuleId,
@@ -3786,6 +3834,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Value<String>? currency,
     Value<DateTime>? date,
     Value<String?>? note,
+    Value<String?>? description,
     Value<String>? source,
     Value<String?>? sourceAppPackage,
     Value<int?>? sourceRuleId,
@@ -3805,6 +3854,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       currency: currency ?? this.currency,
       date: date ?? this.date,
       note: note ?? this.note,
+      description: description ?? this.description,
       source: source ?? this.source,
       sourceAppPackage: sourceAppPackage ?? this.sourceAppPackage,
       sourceRuleId: sourceRuleId ?? this.sourceRuleId,
@@ -3844,6 +3894,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
     if (source.present) {
       map['source'] = Variable<String>(source.value);
@@ -3888,6 +3941,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('currency: $currency, ')
           ..write('date: $date, ')
           ..write('note: $note, ')
+          ..write('description: $description, ')
           ..write('source: $source, ')
           ..write('sourceAppPackage: $sourceAppPackage, ')
           ..write('sourceRuleId: $sourceRuleId, ')
@@ -6681,6 +6735,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       required String currency,
       required DateTime date,
       Value<String?> note,
+      Value<String?> description,
       Value<String> source,
       Value<String?> sourceAppPackage,
       Value<int?> sourceRuleId,
@@ -6701,6 +6756,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String> currency,
       Value<DateTime> date,
       Value<String?> note,
+      Value<String?> description,
       Value<String> source,
       Value<String?> sourceAppPackage,
       Value<int?> sourceRuleId,
@@ -6835,6 +6891,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7006,6 +7067,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get source => $composableBuilder(
     column: $table.source,
     builder: (column) => ColumnOrderings(column),
@@ -7163,6 +7229,11 @@ class $$TransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get source =>
       $composableBuilder(column: $table.source, builder: (column) => column);
@@ -7329,6 +7400,7 @@ class $$TransactionsTableTableManager
                 Value<String> currency = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> description = const Value.absent(),
                 Value<String> source = const Value.absent(),
                 Value<String?> sourceAppPackage = const Value.absent(),
                 Value<int?> sourceRuleId = const Value.absent(),
@@ -7347,6 +7419,7 @@ class $$TransactionsTableTableManager
                 currency: currency,
                 date: date,
                 note: note,
+                description: description,
                 source: source,
                 sourceAppPackage: sourceAppPackage,
                 sourceRuleId: sourceRuleId,
@@ -7367,6 +7440,7 @@ class $$TransactionsTableTableManager
                 required String currency,
                 required DateTime date,
                 Value<String?> note = const Value.absent(),
+                Value<String?> description = const Value.absent(),
                 Value<String> source = const Value.absent(),
                 Value<String?> sourceAppPackage = const Value.absent(),
                 Value<int?> sourceRuleId = const Value.absent(),
@@ -7385,6 +7459,7 @@ class $$TransactionsTableTableManager
                 currency: currency,
                 date: date,
                 note: note,
+                description: description,
                 source: source,
                 sourceAppPackage: sourceAppPackage,
                 sourceRuleId: sourceRuleId,

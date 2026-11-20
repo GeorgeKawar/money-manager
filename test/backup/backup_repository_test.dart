@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:money_manager/core/database/database.dart';
@@ -96,6 +96,19 @@ void main() {
       final preview = repo.parseImport(jsonEncode(decoded));
 
       expect(preview.appSettings.includeArchivedInAllTimeBalance, false);
+    });
+
+    test('still imports an older export missing Transaction.description (nullable column)', () async {
+      final food = await addCategory('Food', 'expense');
+      await addTransaction(accountId: 1, categoryId: food, type: 'expense', amountMinorUnits: 2500);
+      final decoded = jsonDecode(await repo.exportToJson()) as Map<String, dynamic>;
+      for (final txn in decoded['transactions'] as List) {
+        (txn as Map<String, dynamic>).remove('description');
+      }
+
+      final preview = repo.parseImport(jsonEncode(decoded));
+
+      expect(preview.transactions.single.description, isNull);
     });
 
     test('still imports an older export missing Account.isDefault', () async {

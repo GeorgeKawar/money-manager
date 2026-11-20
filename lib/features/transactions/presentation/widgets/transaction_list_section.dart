@@ -121,6 +121,15 @@ class TransactionRow extends ConsumerWidget {
                     '${item.category?.name ?? 'Uncategorized'} · ${relativeDateTimeLabel(txn.date)}',
                     style: TextStyle(color: colors.textMuted, fontSize: 12),
                   ),
+                  if (txn.description?.isNotEmpty == true) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      txn.description!,
+                      style: TextStyle(color: colors.textMuted, fontSize: 12),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -159,6 +168,7 @@ class TransactionRow extends ConsumerWidget {
             currency: txn.currency,
             date: txn.date,
             note: txn.note,
+            description: txn.description,
           ),
         ),
       ),
