@@ -75,6 +75,9 @@ class MainActivity : FlutterActivity() {
                     requestListenerRebind()
                     result.success(null)
                 }
+                "getInstalledApps" -> {
+                    result.success(loadInstalledApps())
+                }
                 "getDeviceManufacturer" -> {
                     // Lets Dart decide whether to show the Samsung-specific
                     // guidance banner below — no public cross-platform API
@@ -152,6 +155,28 @@ class MainActivity : FlutterActivity() {
             return
         }
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+    }
+
+    /**
+     * Installed launchable apps (package + display label) for the rule
+     * editor's app picker — see docs/features/notification-capture.md
+     * "Presets + custom rules". Requires the MAIN/LAUNCHER `<queries>` entry
+     * in AndroidManifest.xml on API 30+, or queryIntentActivities() would
+     * see almost nothing due to package-visibility filtering.
+     */
+    private fun loadInstalledApps(): List<Map<String, String>> {
+        val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        return packageManager.queryIntentActivities(launcherIntent, 0)
+            .map { info ->
+                mapOf(
+                    "package" to info.activityInfo.packageName,
+                    "label" to info.loadLabel(packageManager).toString(),
+                )
+            }
+            .distinctBy { it["package"] }
+            .sortedBy { it["label"]?.lowercase() }
     }
 
     /**

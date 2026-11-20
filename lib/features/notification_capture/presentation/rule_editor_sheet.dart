@@ -8,6 +8,7 @@ import '../../accounts/data/accounts_repository.dart';
 import '../../categories/data/categories_repository.dart';
 import '../data/notification_rules_repository.dart';
 import '../domain/rule_matcher.dart';
+import 'installed_app_picker_sheet.dart';
 
 /// Opens the add/edit notification-rule sheet. Pass [existing] to edit
 /// (and allow deleting) a rule; omit it to create a new one.
@@ -189,20 +190,35 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
                 const SheetFieldLabel('App package'),
                 const SizedBox(height: 8),
                 SheetFieldBox(
-                  child: TextField(
-                    controller: _packageController,
-                    style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      border: InputBorder.none,
-                      hintText: 'e.g. com.bank.app',
-                      hintStyle: TextStyle(color: colors.textMuted, fontWeight: FontWeight.w600),
-                    ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _packageController,
+                          style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+                          decoration: InputDecoration(
+                            isCollapsed: true,
+                            border: InputBorder.none,
+                            hintText: 'e.g. com.bank.app',
+                            hintStyle: TextStyle(color: colors.textMuted, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: _pickInstalledApp,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(Icons.apps, color: colors.accent, size: 22),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Find this in the app\'s Play Store URL, or Android Settings → Apps.',
+                  'Pick from installed apps, or type the package name manually — find it in the '
+                  'app\'s Play Store URL, or Android Settings → Apps.',
                   style: TextStyle(color: colors.textMuted, fontSize: 12),
                 ),
               ],
@@ -485,6 +501,13 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
   /// returning null too — callers that need to tell the two apart check
   /// the source text's `isEmpty` themselves (see `_save`'s validation).
   int? _parseOptionalInt(String text) => text.isEmpty ? null : int.tryParse(text);
+
+  Future<void> _pickInstalledApp() async {
+    final package = await showInstalledAppPickerSheet(context);
+    if (package != null && mounted) {
+      setState(() => _packageController.text = package);
+    }
+  }
 
   void _runTest() {
     final amountGroup = int.tryParse(_amountGroupController.text.trim()) ?? 1;

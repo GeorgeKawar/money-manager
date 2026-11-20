@@ -91,5 +91,13 @@
              MainActivity.kt always falls back to the generic App Info
              screen due to package-visibility filtering. -->
         <package android:name="com.samsung.android.lool"/>
+        <!-- Required on API 30+ for queryIntentActivities() to see other
+             apps' launcher activities — see docs/features/
+             notification-capture.md "Presets + custom rules" (installed-app
+             picker in the rule editor, MainActivity.kt's getInstalledApps). -->
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
+        </intent>
     </queries>
 </manifest>

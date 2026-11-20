@@ -65,6 +65,23 @@ class ListenerDiagnostics {
   final DateTime? lastHeadlessOutcomeAt;
 }
 
+/// One installed, launchable app — package name + display label — for the
+/// rule editor's app picker. See docs/features/notification-capture.md
+/// "Presets + custom rules".
+class InstalledApp {
+  const InstalledApp({required this.package, required this.label});
+
+  factory InstalledApp.fromMap(Map<dynamic, dynamic> map) {
+    return InstalledApp(
+      package: map['package'] as String,
+      label: (map['label'] as String?) ?? '',
+    );
+  }
+
+  final String package;
+  final String label;
+}
+
 /// Dart-side wrapper around the native notification-listener plugin (no
 /// package — plain platform channels declared directly in MainActivity.kt,
 /// matching the thin-native/logic-in-Dart split in docs/architecture.md).
@@ -146,6 +163,20 @@ class NotificationListenerChannel {
   /// limits".
   Future<void> openOemBackgroundSettings() {
     return _methodChannel.invokeMethod('openOemBackgroundSettings');
+  }
+
+  /// Installed launchable apps, for the rule editor's app picker — see
+  /// docs/features/notification-capture.md "Presets + custom rules".
+  /// Returns an empty list on any platform-call failure (e.g. a test
+  /// environment with no platform channel registered), since manual
+  /// package entry remains available as a fallback in the rule editor.
+  Future<List<InstalledApp>> getInstalledApps() async {
+    try {
+      final raw = await _methodChannel.invokeMethod<List<dynamic>>('getInstalledApps');
+      return (raw ?? const []).map((e) => InstalledApp.fromMap(e as Map)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   /// Notifications forwarded live while a Flutter engine is already
