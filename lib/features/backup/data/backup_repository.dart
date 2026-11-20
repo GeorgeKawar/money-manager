@@ -97,13 +97,18 @@ class BackupRepository {
       final appSettingsJson = Map<String, dynamic>.from(decoded['appSettings'] as Map<String, dynamic>);
       appSettingsJson.putIfAbsent('allTimeBalanceAdjustmentMinorUnits', () => 0);
       appSettingsJson.putIfAbsent('includeArchivedInAllTimeBalance', () => false);
+      appSettingsJson.putIfAbsent('isBalanceMasked', () => false);
 
-      // Older exports (before Account.isDefault existed) won't have this
-      // key on each account row; Account.fromJson requires it (non-nullable
-      // column), so default it per-row for the same reason as above.
+      // Older exports (before Account.isDefault/includeInAllTimeBalance
+      // existed) won't have these keys on each account row; Account.fromJson
+      // requires them (non-nullable columns), so default them per-row for
+      // the same reason as above. includeInAllTimeBalance defaults to true,
+      // matching the column's own default (preserves every pre-existing
+      // account's current behavior).
       final accountsJson = (decoded['accounts'] as List).map((row) {
         return Map<String, dynamic>.from(row as Map<String, dynamic>)
-          ..putIfAbsent('isDefault', () => false);
+          ..putIfAbsent('isDefault', () => false)
+          ..putIfAbsent('includeInAllTimeBalance', () => true);
       }).toList();
 
       return ImportPreview(
@@ -161,6 +166,7 @@ class BackupRepository {
                   Value(preview.appSettings.allTimeBalanceAdjustmentMinorUnits),
               includeArchivedInAllTimeBalance:
                   Value(preview.appSettings.includeArchivedInAllTimeBalance),
+              isBalanceMasked: Value(preview.appSettings.isBalanceMasked),
             ),
           );
     });

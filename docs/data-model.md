@@ -11,6 +11,7 @@ Single-row table (or key/value store) for app-wide preferences.
 | theme_mode | enum(light, dark, system) | See [design.md](design.md) theming section. |
 | all_time_balance_adjustment_minor_units | int, default 0 | User-set correction added on top of the computed all-time balance (see "Derived/computed" below). Added 2026-11-08 so the user can make the dashboard balance show a value they expect — e.g. after archiving an account — via the balance card's "Adjust" affordance (`_showAdjustBalanceSheet` in `lib/features/transactions/presentation/dashboard_screen.dart`), without discarding the running computed total (new transactions still move the displayed balance afterward). |
 | include_archived_in_all_time_balance | bool, default false | Whether archived accounts' starting balances and transactions count toward the all-time balance (see "Derived/computed" below). Added 2026-11-09 per user request, making the 2026-11-08 exclusion-of-archived-accounts fix configurable rather than fixed; toggled via a switch on the Accounts screen's "Archived accounts" section — see [features/categories-accounts.md](features/categories-accounts.md). |
+| is_balance_masked | bool, default false | Privacy toggle: masks the all-time balance card's amount behind `•••••` until tapped to reveal (eye icon next to the existing "Adjust" icon). Added 2026-11-20, user request. Set via `SettingsRepository.setBalanceMasked`; persists across app restarts, unlike a per-session-only mask would. |
 
 ## Account
 Represents a wallet/bank account/cash source.
@@ -22,6 +23,7 @@ Represents a wallet/bank account/cash source.
 | starting_balance_minor_units | int | Balance at account creation, stored as integer minor units (see "Money storage" below); current balance is derived (starting + sum of transactions + transfers). Always in the app's `default_currency` (see `AppSettings`) — no per-account currency in v1. |
 | is_archived | bool | Soft-hide without deleting history. |
 | is_default | bool, default false | At most one account has this set (`AccountsRepository.setDefault`, 2026-11-18). Pre-fills the account field on new manual transactions and new notification rules — see [features/categories-accounts.md](features/categories-accounts.md). Cleared automatically on archive. |
+| include_in_all_time_balance | bool, default true | Per-account override for whether this account's starting balance and transactions count toward the all-time balance, independent of `is_archived`/`AppSettings.include_archived_in_all_time_balance` above. Added 2026-11-20, user request — see [features/categories-accounts.md](features/categories-accounts.md). |
 
 ## Category
 | Field | Type | Notes |

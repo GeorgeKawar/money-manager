@@ -66,7 +66,9 @@ class AccountsScreen extends ConsumerWidget {
                   Text('Archived accounts', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 4),
                   Text(
-                    "Hidden from pickers, but their history stays. Choose whether they still count toward the dashboard's all-time balance.",
+                    "Hidden from pickers, but their history stays. Choose whether they still count toward the "
+                    "dashboard's all-time balance as a group below, or tap an account's own \"Include in "
+                    "all-time balance\" toggle to decide for just that one.",
                     style: TextStyle(color: colors.textSecondary, fontSize: 13),
                   ),
                   const SizedBox(height: 12),
@@ -186,6 +188,20 @@ class _AccountRow extends StatelessWidget {
                       child: Text(
                         'Default',
                         style: TextStyle(color: colors.accent, fontSize: 11, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                  if (!item.account.includeInAllTimeBalance) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: colors.textMuted.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Excluded from total',
+                        style: TextStyle(color: colors.textMuted, fontSize: 11, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ],

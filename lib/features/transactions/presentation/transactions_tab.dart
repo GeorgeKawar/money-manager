@@ -137,6 +137,10 @@ class _TransactionsTabState extends ConsumerState<TransactionsTab> {
                           return BalanceCard(
                             balanceMinorUnits: balance,
                             currency: currency,
+                            isMasked: settingsAsync.value?.isBalanceMasked ?? false,
+                            onToggleMask: () => ref
+                                .read(settingsRepositoryProvider)
+                                .setBalanceMasked(!(settingsAsync.value?.isBalanceMasked ?? false)),
                             onTapAdjust: () => _showAdjustBalanceSheet(
                               context,
                               ref,

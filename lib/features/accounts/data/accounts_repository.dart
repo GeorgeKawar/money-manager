@@ -74,20 +74,31 @@ class AccountsRepository {
     );
   }
 
-  Future<int> addAccount({required String name, required int startingBalanceMinorUnits}) {
+  Future<int> addAccount({
+    required String name,
+    required int startingBalanceMinorUnits,
+    bool includeInAllTimeBalance = true,
+  }) {
     return _db.into(_db.accounts).insert(
           AccountsCompanion.insert(
             name: name,
             startingBalanceMinorUnits: Value(startingBalanceMinorUnits),
+            includeInAllTimeBalance: Value(includeInAllTimeBalance),
           ),
         );
   }
 
-  Future<void> updateAccount(int id, {required String name, required int startingBalanceMinorUnits}) {
+  Future<void> updateAccount(
+    int id, {
+    required String name,
+    required int startingBalanceMinorUnits,
+    required bool includeInAllTimeBalance,
+  }) {
     return (_db.update(_db.accounts)..where((a) => a.id.equals(id))).write(
       AccountsCompanion(
         name: Value(name),
         startingBalanceMinorUnits: Value(startingBalanceMinorUnits),
+        includeInAllTimeBalance: Value(includeInAllTimeBalance),
       ),
     );
   }

@@ -74,6 +74,24 @@ void main() {
     });
   });
 
+  group('updateAccount', () {
+    test('persists includeInAllTimeBalance', () async {
+      final id = await addAccount('Spare wallet');
+
+      await repo.updateAccount(id, name: 'Spare wallet', startingBalanceMinorUnits: 0, includeInAllTimeBalance: false);
+
+      final account = await (db.select(db.accounts)..where((a) => a.id.equals(id))).getSingle();
+      expect(account.includeInAllTimeBalance, isFalse);
+    });
+
+    test('defaults a newly-inserted account to includeInAllTimeBalance = true', () async {
+      final id = await addAccount('Spare wallet');
+
+      final account = await (db.select(db.accounts)..where((a) => a.id.equals(id))).getSingle();
+      expect(account.includeInAllTimeBalance, isTrue);
+    });
+  });
+
   group('deleteAccount', () {
     test('removes the account row', () async {
       final id = await addAccount('Spare wallet');

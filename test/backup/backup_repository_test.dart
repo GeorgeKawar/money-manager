@@ -133,6 +133,26 @@ void main() {
 
       expect(preview.accounts.single.isDefault, false);
     });
+
+    test('still imports an older export missing Account.includeInAllTimeBalance', () async {
+      final decoded = jsonDecode(await repo.exportToJson()) as Map<String, dynamic>;
+      for (final account in decoded['accounts'] as List) {
+        (account as Map<String, dynamic>).remove('includeInAllTimeBalance');
+      }
+
+      final preview = repo.parseImport(jsonEncode(decoded));
+
+      expect(preview.accounts.single.includeInAllTimeBalance, true);
+    });
+
+    test('still imports an older export missing AppSettings.isBalanceMasked', () async {
+      final decoded = jsonDecode(await repo.exportToJson()) as Map<String, dynamic>;
+      (decoded['appSettings'] as Map<String, dynamic>).remove('isBalanceMasked');
+
+      final preview = repo.parseImport(jsonEncode(decoded));
+
+      expect(preview.appSettings.isBalanceMasked, false);
+    });
   });
 
   group('applyImport', () {

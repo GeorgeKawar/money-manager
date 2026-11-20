@@ -73,6 +73,21 @@ class $AppSettingsTableTable extends AppSettingsTable
         ),
         defaultValue: const Constant(false),
       );
+  static const VerificationMeta _isBalanceMaskedMeta = const VerificationMeta(
+    'isBalanceMasked',
+  );
+  @override
+  late final GeneratedColumn<bool> isBalanceMasked = GeneratedColumn<bool>(
+    'is_balance_masked',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_balance_masked" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -80,6 +95,7 @@ class $AppSettingsTableTable extends AppSettingsTable
     themeMode,
     allTimeBalanceAdjustmentMinorUnits,
     includeArchivedInAllTimeBalance,
+    isBalanceMasked,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -129,6 +145,15 @@ class $AppSettingsTableTable extends AppSettingsTable
         ),
       );
     }
+    if (data.containsKey('is_balance_masked')) {
+      context.handle(
+        _isBalanceMaskedMeta,
+        isBalanceMasked.isAcceptableOrUnknown(
+          data['is_balance_masked']!,
+          _isBalanceMaskedMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -158,6 +183,10 @@ class $AppSettingsTableTable extends AppSettingsTable
         DriftSqlType.bool,
         data['${effectivePrefix}include_archived_in_all_time_balance'],
       )!,
+      isBalanceMasked: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_balance_masked'],
+      )!,
     );
   }
 
@@ -174,12 +203,14 @@ class AppSettingsTableData extends DataClass
   final String themeMode;
   final int allTimeBalanceAdjustmentMinorUnits;
   final bool includeArchivedInAllTimeBalance;
+  final bool isBalanceMasked;
   const AppSettingsTableData({
     required this.id,
     required this.defaultCurrency,
     required this.themeMode,
     required this.allTimeBalanceAdjustmentMinorUnits,
     required this.includeArchivedInAllTimeBalance,
+    required this.isBalanceMasked,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -193,6 +224,7 @@ class AppSettingsTableData extends DataClass
     map['include_archived_in_all_time_balance'] = Variable<bool>(
       includeArchivedInAllTimeBalance,
     );
+    map['is_balance_masked'] = Variable<bool>(isBalanceMasked);
     return map;
   }
 
@@ -205,6 +237,7 @@ class AppSettingsTableData extends DataClass
         allTimeBalanceAdjustmentMinorUnits,
       ),
       includeArchivedInAllTimeBalance: Value(includeArchivedInAllTimeBalance),
+      isBalanceMasked: Value(isBalanceMasked),
     );
   }
 
@@ -223,6 +256,7 @@ class AppSettingsTableData extends DataClass
       includeArchivedInAllTimeBalance: serializer.fromJson<bool>(
         json['includeArchivedInAllTimeBalance'],
       ),
+      isBalanceMasked: serializer.fromJson<bool>(json['isBalanceMasked']),
     );
   }
   @override
@@ -238,6 +272,7 @@ class AppSettingsTableData extends DataClass
       'includeArchivedInAllTimeBalance': serializer.toJson<bool>(
         includeArchivedInAllTimeBalance,
       ),
+      'isBalanceMasked': serializer.toJson<bool>(isBalanceMasked),
     };
   }
 
@@ -247,6 +282,7 @@ class AppSettingsTableData extends DataClass
     String? themeMode,
     int? allTimeBalanceAdjustmentMinorUnits,
     bool? includeArchivedInAllTimeBalance,
+    bool? isBalanceMasked,
   }) => AppSettingsTableData(
     id: id ?? this.id,
     defaultCurrency: defaultCurrency ?? this.defaultCurrency,
@@ -256,6 +292,7 @@ class AppSettingsTableData extends DataClass
         this.allTimeBalanceAdjustmentMinorUnits,
     includeArchivedInAllTimeBalance:
         includeArchivedInAllTimeBalance ?? this.includeArchivedInAllTimeBalance,
+    isBalanceMasked: isBalanceMasked ?? this.isBalanceMasked,
   );
   AppSettingsTableData copyWithCompanion(AppSettingsTableCompanion data) {
     return AppSettingsTableData(
@@ -272,6 +309,9 @@ class AppSettingsTableData extends DataClass
           data.includeArchivedInAllTimeBalance.present
           ? data.includeArchivedInAllTimeBalance.value
           : this.includeArchivedInAllTimeBalance,
+      isBalanceMasked: data.isBalanceMasked.present
+          ? data.isBalanceMasked.value
+          : this.isBalanceMasked,
     );
   }
 
@@ -285,8 +325,9 @@ class AppSettingsTableData extends DataClass
             'allTimeBalanceAdjustmentMinorUnits: $allTimeBalanceAdjustmentMinorUnits, ',
           )
           ..write(
-            'includeArchivedInAllTimeBalance: $includeArchivedInAllTimeBalance',
+            'includeArchivedInAllTimeBalance: $includeArchivedInAllTimeBalance, ',
           )
+          ..write('isBalanceMasked: $isBalanceMasked')
           ..write(')'))
         .toString();
   }
@@ -298,6 +339,7 @@ class AppSettingsTableData extends DataClass
     themeMode,
     allTimeBalanceAdjustmentMinorUnits,
     includeArchivedInAllTimeBalance,
+    isBalanceMasked,
   );
   @override
   bool operator ==(Object other) =>
@@ -309,7 +351,8 @@ class AppSettingsTableData extends DataClass
           other.allTimeBalanceAdjustmentMinorUnits ==
               this.allTimeBalanceAdjustmentMinorUnits &&
           other.includeArchivedInAllTimeBalance ==
-              this.includeArchivedInAllTimeBalance);
+              this.includeArchivedInAllTimeBalance &&
+          other.isBalanceMasked == this.isBalanceMasked);
 }
 
 class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
@@ -318,12 +361,14 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
   final Value<String> themeMode;
   final Value<int> allTimeBalanceAdjustmentMinorUnits;
   final Value<bool> includeArchivedInAllTimeBalance;
+  final Value<bool> isBalanceMasked;
   const AppSettingsTableCompanion({
     this.id = const Value.absent(),
     this.defaultCurrency = const Value.absent(),
     this.themeMode = const Value.absent(),
     this.allTimeBalanceAdjustmentMinorUnits = const Value.absent(),
     this.includeArchivedInAllTimeBalance = const Value.absent(),
+    this.isBalanceMasked = const Value.absent(),
   });
   AppSettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -331,6 +376,7 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     this.themeMode = const Value.absent(),
     this.allTimeBalanceAdjustmentMinorUnits = const Value.absent(),
     this.includeArchivedInAllTimeBalance = const Value.absent(),
+    this.isBalanceMasked = const Value.absent(),
   });
   static Insertable<AppSettingsTableData> custom({
     Expression<int>? id,
@@ -338,6 +384,7 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     Expression<String>? themeMode,
     Expression<int>? allTimeBalanceAdjustmentMinorUnits,
     Expression<bool>? includeArchivedInAllTimeBalance,
+    Expression<bool>? isBalanceMasked,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -348,6 +395,7 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
             allTimeBalanceAdjustmentMinorUnits,
       if (includeArchivedInAllTimeBalance != null)
         'include_archived_in_all_time_balance': includeArchivedInAllTimeBalance,
+      if (isBalanceMasked != null) 'is_balance_masked': isBalanceMasked,
     });
   }
 
@@ -357,6 +405,7 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
     Value<String>? themeMode,
     Value<int>? allTimeBalanceAdjustmentMinorUnits,
     Value<bool>? includeArchivedInAllTimeBalance,
+    Value<bool>? isBalanceMasked,
   }) {
     return AppSettingsTableCompanion(
       id: id ?? this.id,
@@ -368,6 +417,7 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
       includeArchivedInAllTimeBalance:
           includeArchivedInAllTimeBalance ??
           this.includeArchivedInAllTimeBalance,
+      isBalanceMasked: isBalanceMasked ?? this.isBalanceMasked,
     );
   }
 
@@ -393,6 +443,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
         includeArchivedInAllTimeBalance.value,
       );
     }
+    if (isBalanceMasked.present) {
+      map['is_balance_masked'] = Variable<bool>(isBalanceMasked.value);
+    }
     return map;
   }
 
@@ -406,8 +459,9 @@ class AppSettingsTableCompanion extends UpdateCompanion<AppSettingsTableData> {
             'allTimeBalanceAdjustmentMinorUnits: $allTimeBalanceAdjustmentMinorUnits, ',
           )
           ..write(
-            'includeArchivedInAllTimeBalance: $includeArchivedInAllTimeBalance',
+            'includeArchivedInAllTimeBalance: $includeArchivedInAllTimeBalance, ',
           )
+          ..write('isBalanceMasked: $isBalanceMasked')
           ..write(')'))
         .toString();
   }
@@ -482,6 +536,21 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _includeInAllTimeBalanceMeta =
+      const VerificationMeta('includeInAllTimeBalance');
+  @override
+  late final GeneratedColumn<bool> includeInAllTimeBalance =
+      GeneratedColumn<bool>(
+        'include_in_all_time_balance',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("include_in_all_time_balance" IN (0, 1))',
+        ),
+        defaultValue: const Constant(true),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -489,6 +558,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     startingBalanceMinorUnits,
     isArchived,
     isDefault,
+    includeInAllTimeBalance,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -534,6 +604,15 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
       );
     }
+    if (data.containsKey('include_in_all_time_balance')) {
+      context.handle(
+        _includeInAllTimeBalanceMeta,
+        includeInAllTimeBalance.isAcceptableOrUnknown(
+          data['include_in_all_time_balance']!,
+          _includeInAllTimeBalanceMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -563,6 +642,10 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         DriftSqlType.bool,
         data['${effectivePrefix}is_default'],
       )!,
+      includeInAllTimeBalance: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}include_in_all_time_balance'],
+      )!,
     );
   }
 
@@ -578,12 +661,14 @@ class Account extends DataClass implements Insertable<Account> {
   final int startingBalanceMinorUnits;
   final bool isArchived;
   final bool isDefault;
+  final bool includeInAllTimeBalance;
   const Account({
     required this.id,
     required this.name,
     required this.startingBalanceMinorUnits,
     required this.isArchived,
     required this.isDefault,
+    required this.includeInAllTimeBalance,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -595,6 +680,9 @@ class Account extends DataClass implements Insertable<Account> {
     );
     map['is_archived'] = Variable<bool>(isArchived);
     map['is_default'] = Variable<bool>(isDefault);
+    map['include_in_all_time_balance'] = Variable<bool>(
+      includeInAllTimeBalance,
+    );
     return map;
   }
 
@@ -605,6 +693,7 @@ class Account extends DataClass implements Insertable<Account> {
       startingBalanceMinorUnits: Value(startingBalanceMinorUnits),
       isArchived: Value(isArchived),
       isDefault: Value(isDefault),
+      includeInAllTimeBalance: Value(includeInAllTimeBalance),
     );
   }
 
@@ -621,6 +710,9 @@ class Account extends DataClass implements Insertable<Account> {
       ),
       isArchived: serializer.fromJson<bool>(json['isArchived']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
+      includeInAllTimeBalance: serializer.fromJson<bool>(
+        json['includeInAllTimeBalance'],
+      ),
     );
   }
   @override
@@ -634,6 +726,9 @@ class Account extends DataClass implements Insertable<Account> {
       ),
       'isArchived': serializer.toJson<bool>(isArchived),
       'isDefault': serializer.toJson<bool>(isDefault),
+      'includeInAllTimeBalance': serializer.toJson<bool>(
+        includeInAllTimeBalance,
+      ),
     };
   }
 
@@ -643,6 +738,7 @@ class Account extends DataClass implements Insertable<Account> {
     int? startingBalanceMinorUnits,
     bool? isArchived,
     bool? isDefault,
+    bool? includeInAllTimeBalance,
   }) => Account(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -650,6 +746,8 @@ class Account extends DataClass implements Insertable<Account> {
         startingBalanceMinorUnits ?? this.startingBalanceMinorUnits,
     isArchived: isArchived ?? this.isArchived,
     isDefault: isDefault ?? this.isDefault,
+    includeInAllTimeBalance:
+        includeInAllTimeBalance ?? this.includeInAllTimeBalance,
   );
   Account copyWithCompanion(AccountsCompanion data) {
     return Account(
@@ -662,6 +760,9 @@ class Account extends DataClass implements Insertable<Account> {
           ? data.isArchived.value
           : this.isArchived,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      includeInAllTimeBalance: data.includeInAllTimeBalance.present
+          ? data.includeInAllTimeBalance.value
+          : this.includeInAllTimeBalance,
     );
   }
 
@@ -672,14 +773,21 @@ class Account extends DataClass implements Insertable<Account> {
           ..write('name: $name, ')
           ..write('startingBalanceMinorUnits: $startingBalanceMinorUnits, ')
           ..write('isArchived: $isArchived, ')
-          ..write('isDefault: $isDefault')
+          ..write('isDefault: $isDefault, ')
+          ..write('includeInAllTimeBalance: $includeInAllTimeBalance')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, startingBalanceMinorUnits, isArchived, isDefault);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    startingBalanceMinorUnits,
+    isArchived,
+    isDefault,
+    includeInAllTimeBalance,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -688,7 +796,8 @@ class Account extends DataClass implements Insertable<Account> {
           other.name == this.name &&
           other.startingBalanceMinorUnits == this.startingBalanceMinorUnits &&
           other.isArchived == this.isArchived &&
-          other.isDefault == this.isDefault);
+          other.isDefault == this.isDefault &&
+          other.includeInAllTimeBalance == this.includeInAllTimeBalance);
 }
 
 class AccountsCompanion extends UpdateCompanion<Account> {
@@ -697,12 +806,14 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<int> startingBalanceMinorUnits;
   final Value<bool> isArchived;
   final Value<bool> isDefault;
+  final Value<bool> includeInAllTimeBalance;
   const AccountsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.startingBalanceMinorUnits = const Value.absent(),
     this.isArchived = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.includeInAllTimeBalance = const Value.absent(),
   });
   AccountsCompanion.insert({
     this.id = const Value.absent(),
@@ -710,6 +821,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     this.startingBalanceMinorUnits = const Value.absent(),
     this.isArchived = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.includeInAllTimeBalance = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Account> custom({
     Expression<int>? id,
@@ -717,6 +829,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Expression<int>? startingBalanceMinorUnits,
     Expression<bool>? isArchived,
     Expression<bool>? isDefault,
+    Expression<bool>? includeInAllTimeBalance,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -725,6 +838,8 @@ class AccountsCompanion extends UpdateCompanion<Account> {
         'starting_balance_minor_units': startingBalanceMinorUnits,
       if (isArchived != null) 'is_archived': isArchived,
       if (isDefault != null) 'is_default': isDefault,
+      if (includeInAllTimeBalance != null)
+        'include_in_all_time_balance': includeInAllTimeBalance,
     });
   }
 
@@ -734,6 +849,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Value<int>? startingBalanceMinorUnits,
     Value<bool>? isArchived,
     Value<bool>? isDefault,
+    Value<bool>? includeInAllTimeBalance,
   }) {
     return AccountsCompanion(
       id: id ?? this.id,
@@ -742,6 +858,8 @@ class AccountsCompanion extends UpdateCompanion<Account> {
           startingBalanceMinorUnits ?? this.startingBalanceMinorUnits,
       isArchived: isArchived ?? this.isArchived,
       isDefault: isDefault ?? this.isDefault,
+      includeInAllTimeBalance:
+          includeInAllTimeBalance ?? this.includeInAllTimeBalance,
     );
   }
 
@@ -765,6 +883,11 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
     }
+    if (includeInAllTimeBalance.present) {
+      map['include_in_all_time_balance'] = Variable<bool>(
+        includeInAllTimeBalance.value,
+      );
+    }
     return map;
   }
 
@@ -775,7 +898,8 @@ class AccountsCompanion extends UpdateCompanion<Account> {
           ..write('name: $name, ')
           ..write('startingBalanceMinorUnits: $startingBalanceMinorUnits, ')
           ..write('isArchived: $isArchived, ')
-          ..write('isDefault: $isDefault')
+          ..write('isDefault: $isDefault, ')
+          ..write('includeInAllTimeBalance: $includeInAllTimeBalance')
           ..write(')'))
         .toString();
   }
@@ -4044,6 +4168,7 @@ typedef $$AppSettingsTableTableCreateCompanionBuilder =
       Value<String> themeMode,
       Value<int> allTimeBalanceAdjustmentMinorUnits,
       Value<bool> includeArchivedInAllTimeBalance,
+      Value<bool> isBalanceMasked,
     });
 typedef $$AppSettingsTableTableUpdateCompanionBuilder =
     AppSettingsTableCompanion Function({
@@ -4052,6 +4177,7 @@ typedef $$AppSettingsTableTableUpdateCompanionBuilder =
       Value<String> themeMode,
       Value<int> allTimeBalanceAdjustmentMinorUnits,
       Value<bool> includeArchivedInAllTimeBalance,
+      Value<bool> isBalanceMasked,
     });
 
 class $$AppSettingsTableTableFilterComposer
@@ -4086,6 +4212,11 @@ class $$AppSettingsTableTableFilterComposer
 
   ColumnFilters<bool> get includeArchivedInAllTimeBalance => $composableBuilder(
     column: $table.includeArchivedInAllTimeBalance,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isBalanceMasked => $composableBuilder(
+    column: $table.isBalanceMasked,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -4125,6 +4256,11 @@ class $$AppSettingsTableTableOrderingComposer
         column: $table.includeArchivedInAllTimeBalance,
         builder: (column) => ColumnOrderings(column),
       );
+
+  ColumnOrderings<bool> get isBalanceMasked => $composableBuilder(
+    column: $table.isBalanceMasked,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AppSettingsTableTableAnnotationComposer
@@ -4158,6 +4294,11 @@ class $$AppSettingsTableTableAnnotationComposer
         column: $table.includeArchivedInAllTimeBalance,
         builder: (column) => column,
       );
+
+  GeneratedColumn<bool> get isBalanceMasked => $composableBuilder(
+    column: $table.isBalanceMasked,
+    builder: (column) => column,
+  );
 }
 
 class $$AppSettingsTableTableTableManager
@@ -4204,6 +4345,7 @@ class $$AppSettingsTableTableTableManager
                     const Value.absent(),
                 Value<bool> includeArchivedInAllTimeBalance =
                     const Value.absent(),
+                Value<bool> isBalanceMasked = const Value.absent(),
               }) => AppSettingsTableCompanion(
                 id: id,
                 defaultCurrency: defaultCurrency,
@@ -4212,6 +4354,7 @@ class $$AppSettingsTableTableTableManager
                     allTimeBalanceAdjustmentMinorUnits,
                 includeArchivedInAllTimeBalance:
                     includeArchivedInAllTimeBalance,
+                isBalanceMasked: isBalanceMasked,
               ),
           createCompanionCallback:
               ({
@@ -4222,6 +4365,7 @@ class $$AppSettingsTableTableTableManager
                     const Value.absent(),
                 Value<bool> includeArchivedInAllTimeBalance =
                     const Value.absent(),
+                Value<bool> isBalanceMasked = const Value.absent(),
               }) => AppSettingsTableCompanion.insert(
                 id: id,
                 defaultCurrency: defaultCurrency,
@@ -4230,6 +4374,7 @@ class $$AppSettingsTableTableTableManager
                     allTimeBalanceAdjustmentMinorUnits,
                 includeArchivedInAllTimeBalance:
                     includeArchivedInAllTimeBalance,
+                isBalanceMasked: isBalanceMasked,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -4267,6 +4412,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
       Value<int> startingBalanceMinorUnits,
       Value<bool> isArchived,
       Value<bool> isDefault,
+      Value<bool> includeInAllTimeBalance,
     });
 typedef $$AccountsTableUpdateCompanionBuilder =
     AccountsCompanion Function({
@@ -4275,6 +4421,7 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<int> startingBalanceMinorUnits,
       Value<bool> isArchived,
       Value<bool> isDefault,
+      Value<bool> includeInAllTimeBalance,
     });
 
 final class $$AccountsTableReferences
@@ -4383,6 +4530,11 @@ class $$AccountsTableFilterComposer
 
   ColumnFilters<bool> get isDefault => $composableBuilder(
     column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get includeInAllTimeBalance => $composableBuilder(
+    column: $table.includeInAllTimeBalance,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4496,6 +4648,11 @@ class $$AccountsTableOrderingComposer
     column: $table.isDefault,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get includeInAllTimeBalance => $composableBuilder(
+    column: $table.includeInAllTimeBalance,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AccountsTableAnnotationComposer
@@ -4525,6 +4682,11 @@ class $$AccountsTableAnnotationComposer
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<bool> get includeInAllTimeBalance => $composableBuilder(
+    column: $table.includeInAllTimeBalance,
+    builder: (column) => column,
+  );
 
   Expression<T> notificationRulesRefs<T extends Object>(
     Expression<T> Function($$NotificationRulesTableAnnotationComposer a) f,
@@ -4641,12 +4803,14 @@ class $$AccountsTableTableManager
                 Value<int> startingBalanceMinorUnits = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
+                Value<bool> includeInAllTimeBalance = const Value.absent(),
               }) => AccountsCompanion(
                 id: id,
                 name: name,
                 startingBalanceMinorUnits: startingBalanceMinorUnits,
                 isArchived: isArchived,
                 isDefault: isDefault,
+                includeInAllTimeBalance: includeInAllTimeBalance,
               ),
           createCompanionCallback:
               ({
@@ -4655,12 +4819,14 @@ class $$AccountsTableTableManager
                 Value<int> startingBalanceMinorUnits = const Value.absent(),
                 Value<bool> isArchived = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
+                Value<bool> includeInAllTimeBalance = const Value.absent(),
               }) => AccountsCompanion.insert(
                 id: id,
                 name: name,
                 startingBalanceMinorUnits: startingBalanceMinorUnits,
                 isArchived: isArchived,
                 isDefault: isDefault,
+                includeInAllTimeBalance: includeInAllTimeBalance,
               ),
           withReferenceMapper: (p0) => p0
               .map(

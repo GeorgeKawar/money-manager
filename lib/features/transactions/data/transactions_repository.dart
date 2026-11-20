@@ -152,18 +152,24 @@ class TransactionsRepository {
   /// non-transfer transactions (income adds, expense subtracts), plus the
   /// user's manual adjustment (AppSettings
   /// `allTimeBalanceAdjustmentMinorUnits`, set via
-  /// SettingsRepository.setAllTimeBalanceAdjustment). Which accounts are
-  /// "eligible" depends on AppSettings `includeArchivedInAllTimeBalance`
-  /// (set via SettingsRepository.setIncludeArchivedInAllTimeBalance): false
-  /// (default, fixed 2026-11-08) excludes archived accounts, matching
-  /// AccountsRepository.watchActive()/watchActiveWithBalances(); true
-  /// includes them too, for users who want the old behavior back — see
-  /// docs/features/categories-accounts.md. Transfers are intentionally
-  /// excluded here (rather than included like in
-  /// AccountsRepository.watchActiveWithBalances): a transfer's outflow and
-  /// inflow legs are equal-and-opposite signed amounts, so they cancel to
-  /// zero across all accounts combined — excluding them is equivalent to
-  /// including them, and cheaper.
+  /// SettingsRepository.setAllTimeBalanceAdjustment). An account is
+  /// "eligible" when both of these hold:
+  /// - its own `includeInAllTimeBalance` flag is true (per-account
+  ///   override, default true — added 2026-11-20, user request, lets one
+  ///   specific account be excluded/included regardless of the other two
+  ///   rules below);
+  /// - it isn't archived, OR AppSettings `includeArchivedInAllTimeBalance`
+  ///   (set via SettingsRepository.setIncludeArchivedInAllTimeBalance) is
+  ///   true: false (default, fixed 2026-11-08) excludes archived accounts
+  ///   as a group, matching
+  ///   AccountsRepository.watchActive()/watchActiveWithBalances(); true
+  ///   includes them too, for users who want the old behavior back — see
+  ///   docs/features/categories-accounts.md.
+  /// Transfers are intentionally excluded here (rather than included like
+  /// in AccountsRepository.watchActiveWithBalances): a transfer's outflow
+  /// and inflow legs are equal-and-opposite signed amounts, so they cancel
+  /// to zero across all accounts combined — excluding them is equivalent
+  /// to including them, and cheaper.
   Stream<int> watchAllTimeBalanceMinorUnits() {
     final accountsQuery = _db.select(_db.accounts);
     final transactionsQuery = _db.select(_db.transactions)
@@ -176,9 +182,10 @@ class TransactionsRepository {
       transactionsQuery.watch(),
       settingsQuery.watchSingle(),
       (accounts, txns, settings) {
-        final eligibleAccounts = settings.includeArchivedInAllTimeBalance
-            ? accounts
-            : accounts.where((a) => !a.isArchived).toList();
+        final eligibleAccounts = accounts.where((a) {
+          if (!a.includeInAllTimeBalance) return false;
+          return !a.isArchived || settings.includeArchivedInAllTimeBalance;
+        }).toList();
         final eligibleAccountIds = eligibleAccounts.map((a) => a.id).toSet();
         final startingTotal =
             eligibleAccounts.fold<int>(0, (sum, a) => sum + a.startingBalanceMinorUnits);

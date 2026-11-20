@@ -20,6 +20,10 @@ class AppSettingsTable extends Table {
   // transactions count toward it too, for users who want the old
   // behavior back — see docs/features/categories-accounts.md.
   BoolColumn get includeArchivedInAllTimeBalance => boolean().withDefault(const Constant(false))();
+  // Privacy toggle: masks the all-time balance card's amount (e.g. behind a
+  // shoulder-surfer) until tapped to reveal. Added 2026-11-20, user
+  // request. Default false — the balance is shown as it always was.
+  BoolColumn get isBalanceMasked => boolean().withDefault(const Constant(false))();
 }
 
 /// See docs/data-model.md `Account`.
@@ -33,6 +37,14 @@ class Accounts extends Table {
   // Pre-fills the account field on new manual transactions and on new
   // notification rules, per docs/features/categories-accounts.md.
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  // Per-account override for whether this account counts toward the
+  // dashboard's all-time balance — independent of isArchived (the existing
+  // AppSettings.includeArchivedInAllTimeBalance toggle controls archived
+  // accounts as a group; this lets one specific account, active or
+  // archived, be excluded/included individually). Default true preserves
+  // every pre-existing account's current behavior. Added 2026-11-20, user
+  // request. See TransactionsRepository.watchAllTimeBalanceMinorUnits.
+  BoolColumn get includeInAllTimeBalance => boolean().withDefault(const Constant(true))();
 }
 
 /// See docs/data-model.md `Category`.

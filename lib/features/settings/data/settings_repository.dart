@@ -47,6 +47,12 @@ class SettingsRepository {
           AppSettingsTableCompanion(includeArchivedInAllTimeBalance: Value(include)),
         );
   }
+
+  Future<void> setBalanceMasked(bool masked) {
+    return _db.update(_db.appSettingsTable).write(
+          AppSettingsTableCompanion(isBalanceMasked: Value(masked)),
+        );
+  }
 }
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {

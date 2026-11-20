@@ -18,12 +18,18 @@ void main() {
 
   tearDown(() => db.close());
 
-  Future<int> addAccount(String name, {int startingBalanceMinorUnits = 0, bool isArchived = false}) {
+  Future<int> addAccount(
+    String name, {
+    int startingBalanceMinorUnits = 0,
+    bool isArchived = false,
+    bool includeInAllTimeBalance = true,
+  }) {
     return db.into(db.accounts).insert(
           AccountsCompanion.insert(
             name: name,
             startingBalanceMinorUnits: Value(startingBalanceMinorUnits),
             isArchived: Value(isArchived),
+            includeInAllTimeBalance: Value(includeInAllTimeBalance),
           ),
         );
   }
@@ -90,6 +96,35 @@ void main() {
       final balance = await repo.watchAllTimeBalanceMinorUnits().first;
 
       expect(balance, 20000 + 5000 + 3000);
+    });
+
+    test('excludes an active account with includeInAllTimeBalance = false', () async {
+      final excluded = await addAccount('Side fund', startingBalanceMinorUnits: 5000, includeInAllTimeBalance: false);
+      await addTransaction(accountId: excluded, type: 'income', amountMinorUnits: 1000);
+      await addTransaction(accountId: 1, type: 'income', amountMinorUnits: 3000);
+
+      final balance = await repo.watchAllTimeBalanceMinorUnits().first;
+
+      expect(balance, 3000);
+    });
+
+    test('excludes an archived account even when includeArchivedInAllTimeBalance is true, if its own flag is false',
+        () async {
+      final archived = await addAccount(
+        'Old wallet',
+        startingBalanceMinorUnits: 20000,
+        isArchived: true,
+        includeInAllTimeBalance: false,
+      );
+      await addTransaction(accountId: archived, type: 'income', amountMinorUnits: 5000);
+      await addTransaction(accountId: 1, type: 'income', amountMinorUnits: 3000);
+      await (db.update(db.appSettingsTable)).write(
+        const AppSettingsTableCompanion(includeArchivedInAllTimeBalance: Value(true)),
+      );
+
+      final balance = await repo.watchAllTimeBalanceMinorUnits().first;
+
+      expect(balance, 3000);
     });
 
     test('adds the manual adjustment from AppSettings on top of the computed total', () async {

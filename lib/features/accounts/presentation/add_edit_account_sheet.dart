@@ -31,6 +31,7 @@ class _AddEditAccountSheet extends ConsumerStatefulWidget {
 class _AddEditAccountSheetState extends ConsumerState<_AddEditAccountSheet> {
   final _nameController = TextEditingController();
   final _balanceController = TextEditingController();
+  late bool _includeInAllTimeBalance;
 
   bool get _isEditing => widget.existing != null;
 
@@ -38,6 +39,7 @@ class _AddEditAccountSheetState extends ConsumerState<_AddEditAccountSheet> {
   void initState() {
     super.initState();
     final existing = widget.existing;
+    _includeInAllTimeBalance = existing?.includeInAllTimeBalance ?? true;
     if (existing != null) {
       _nameController.text = existing.name;
       _balanceController.text = (existing.startingBalanceMinorUnits / 1000).toStringAsFixed(2);
@@ -119,6 +121,32 @@ class _AddEditAccountSheetState extends ConsumerState<_AddEditAccountSheet> {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              SheetFieldBox(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Include in all-time balance',
+                            style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w700),
+                          ),
+                          Text(
+                            'Turn off to exclude just this account from the dashboard\'s all-time balance.',
+                            style: TextStyle(color: colors.textMuted, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _includeInAllTimeBalance,
+                      onChanged: (v) => setState(() => _includeInAllTimeBalance = v),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -184,9 +212,14 @@ class _AddEditAccountSheetState extends ConsumerState<_AddEditAccountSheet> {
         widget.existing!.id,
         name: name,
         startingBalanceMinorUnits: balanceMinorUnits,
+        includeInAllTimeBalance: _includeInAllTimeBalance,
       );
     } else {
-      await repo.addAccount(name: name, startingBalanceMinorUnits: balanceMinorUnits);
+      await repo.addAccount(
+        name: name,
+        startingBalanceMinorUnits: balanceMinorUnits,
+        includeInAllTimeBalance: _includeInAllTimeBalance,
+      );
     }
     if (mounted) Navigator.of(context).pop();
   }
