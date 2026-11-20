@@ -35,6 +35,7 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
   late bool _autoAdd;
   late bool _matchAnyApp;
   final _nameController = TextEditingController();
+  final _fallbackNameController = TextEditingController();
   final _packageController = TextEditingController();
   final _regexController = TextEditingController();
   final _amountGroupController = TextEditingController(text: '1');
@@ -61,6 +62,7 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
     _accountId = existing?.defaultAccountId;
     _categoryId = existing?.defaultCategoryId;
     _nameController.text = existing?.name ?? '';
+    _fallbackNameController.text = existing?.fallbackName ?? '';
     _packageController.text = existing?.appPackage ?? '';
     _regexController.text = existing?.regexPattern ?? '';
     _amountGroupController.text = (existing?.amountGroup ?? 1).toString();
@@ -74,6 +76,7 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
   @override
   void dispose() {
     _nameController.dispose();
+    _fallbackNameController.dispose();
     _packageController.dispose();
     _regexController.dispose();
     _amountGroupController.dispose();
@@ -137,6 +140,29 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
                     hintStyle: TextStyle(color: colors.textMuted, fontWeight: FontWeight.w600),
                   ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              const SheetFieldLabel('Fallback name (optional)'),
+              const SizedBox(height: 8),
+              SheetFieldBox(
+                child: TextField(
+                  controller: _fallbackNameController,
+                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    isCollapsed: true,
+                    border: InputBorder.none,
+                    hintText: 'Leave blank to use the rule name above',
+                    hintStyle: TextStyle(color: colors.textMuted, fontWeight: FontWeight.w600),
+                  ),
+                  onChanged: (_) => setState(() => _testResult = null),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Used in the transaction note instead of the rule name, when the name group below '
+                'doesn\'t match — lets the rule name stay descriptive (e.g. "Bank X — card payment v2") '
+                'while the note stays short (e.g. "Card payment").',
+                style: TextStyle(color: colors.textMuted, fontSize: 12),
               ),
               const SizedBox(height: 16),
               SheetFieldBox(
@@ -328,8 +354,9 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Name group fills the transaction\'s note (falling back to the rule name above if it '
-                'doesn\'t match); a note group, if set, is appended after it — so the note is never blank.',
+                'Name group fills the transaction\'s note (falling back to the fallback name, or the rule '
+                'name, if it doesn\'t match); a note group, if set, is appended after it — so the note is '
+                'never blank.',
                 style: TextStyle(color: colors.textMuted, fontSize: 12),
               ),
               const SizedBox(height: 20),
@@ -467,6 +494,7 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
         amountGroup: amountGroup,
         sampleText: _sampleTextController.text,
         ruleName: _nameController.text.trim(),
+        fallbackName: _fallbackNameController.text.trim().isEmpty ? null : _fallbackNameController.text.trim(),
         dateGroup: _parseOptionalInt(_dateGroupController.text.trim()),
         dateFormat: _dateFormatController.text.trim().isEmpty ? null : _dateFormatController.text.trim(),
         noteGroup: _parseOptionalInt(_noteGroupController.text.trim()),
@@ -513,11 +541,13 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
       return;
     }
 
+    final fallbackName = _fallbackNameController.text.trim();
     final repo = ref.read(notificationRulesRepositoryProvider);
     if (_isEditing) {
       await repo.updateRule(
         widget.existing!.id,
         name: name,
+        fallbackName: fallbackName.isEmpty ? null : fallbackName,
         appPackage: package,
         matchAnyApp: _matchAnyApp,
         regexPattern: regex,
@@ -535,6 +565,7 @@ class _RuleEditorSheetState extends ConsumerState<_RuleEditorSheet> {
     } else {
       await repo.addRule(
         name: name,
+        fallbackName: fallbackName.isEmpty ? null : fallbackName,
         appPackage: package,
         matchAnyApp: _matchAnyApp,
         regexPattern: regex,

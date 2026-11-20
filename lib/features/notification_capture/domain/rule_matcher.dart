@@ -74,7 +74,7 @@ String _resolveNote({
   return _composeNote(
     rawName: _safeGroup(match, rule.nameGroup),
     rawNote: _safeGroup(match, rule.noteGroup),
-    fallbackName: rule.name,
+    fallbackName: rule.fallbackName?.trim().isNotEmpty == true ? rule.fallbackName!.trim() : rule.name,
   );
 }
 
@@ -146,6 +146,7 @@ RuleTestResult testRule({
   required int amountGroup,
   required String sampleText,
   String ruleName = '',
+  String? fallbackName,
   int? dateGroup,
   String? dateFormat,
   int? noteGroup,
@@ -185,7 +186,9 @@ RuleTestResult testRule({
   final resolvedNote = _composeNote(
     rawName: _safeGroup(match, nameGroup),
     rawNote: _safeGroup(match, noteGroup),
-    fallbackName: ruleName.isNotEmpty ? ruleName : '(rule name)',
+    fallbackName: fallbackName?.trim().isNotEmpty == true
+        ? fallbackName!.trim()
+        : (ruleName.isNotEmpty ? ruleName : '(rule name)'),
   );
 
   DateTime? resolvedDate;

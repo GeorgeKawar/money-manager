@@ -62,7 +62,8 @@ A user-configured (or preset) regex rule for parsing a specific app's notificati
 | Field | Type | Notes |
 |---|---|---|
 | id | int, PK | |
-| name | text | Display name, e.g. "Bank X — card payment"; also the note fallback when no name_group captures — see "Matching details" below. |
+| name | text | Display name, e.g. "Bank X — card payment"; also the note fallback when no name_group captures and fallback_name is unset — see "Matching details" below. |
+| fallback_name | text, nullable | Overrides `name` as the note fallback only, without changing the rule's own display name — e.g. a descriptively-named rule "Bank X — card payment v2" can still produce a short note like "Card payment". Added 2026-11-20, user request. Null/blank means "use `name`". |
 | app_package | text | Android package the rule applies to, e.g. `com.chase.mobile`. Ignored (may be blank) when match_any_app is true. |
 | match_any_app | bool, default false | True = evaluate against notifications from every app, not just app_package. |
 | is_enabled | bool | |

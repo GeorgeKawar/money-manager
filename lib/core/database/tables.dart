@@ -51,6 +51,12 @@ class Categories extends Table {
 class NotificationRules extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
+  // Overrides `name` as the Transaction.note fallback (used when nameGroup
+  // is unset or doesn't match — see docs/features/notification-capture.md
+  // "Matching details") without changing the rule's own display name in
+  // the Rules screen. Added 2026-11-20, user request. Null/blank means
+  // "use `name`", preserving the original behavior for existing rules.
+  TextColumn get fallbackName => text().nullable()();
   // Ignored (may be blank) when matchAnyApp is true.
   TextColumn get appPackage => text()();
   // True = evaluate this rule against notifications from any app, not just

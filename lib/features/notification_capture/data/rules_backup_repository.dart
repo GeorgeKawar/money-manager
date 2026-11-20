@@ -42,6 +42,7 @@ enum RuleImportStatus {
 class RuleImportItem {
   const RuleImportItem({
     required this.name,
+    required this.fallbackName,
     required this.appPackage,
     required this.matchAnyApp,
     required this.isEnabled,
@@ -63,6 +64,7 @@ class RuleImportItem {
   });
 
   final String name;
+  final String? fallbackName;
   final String appPackage;
   final bool matchAnyApp;
   final bool isEnabled;
@@ -229,6 +231,7 @@ class RulesBackupRepository {
 
       items.add(RuleImportItem(
         name: rule.name,
+        fallbackName: rule.fallbackName,
         appPackage: rule.appPackage,
         matchAnyApp: rule.matchAnyApp,
         isEnabled: rule.isEnabled,
@@ -274,6 +277,7 @@ class RulesBackupRepository {
             _db.notificationRules,
             NotificationRulesCompanion.insert(
               name: item.name,
+              fallbackName: Value(item.fallbackName),
               appPackage: item.appPackage,
               matchAnyApp: Value(item.matchAnyApp),
               isEnabled: Value(item.isEnabled),

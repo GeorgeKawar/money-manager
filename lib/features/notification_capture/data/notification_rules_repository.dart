@@ -43,6 +43,7 @@ class NotificationRulesRepository {
 
   Future<int> addRule({
     required String name,
+    String? fallbackName,
     required String appPackage,
     bool matchAnyApp = false,
     required String regexPattern,
@@ -66,6 +67,7 @@ class NotificationRulesRepository {
       return _db.into(_db.notificationRules).insert(
             NotificationRulesCompanion.insert(
               name: name,
+              fallbackName: Value(fallbackName),
               appPackage: appPackage,
               matchAnyApp: Value(matchAnyApp),
               regexPattern: regexPattern,
@@ -89,6 +91,7 @@ class NotificationRulesRepository {
   Future<void> updateRule(
     int id, {
     required String name,
+    String? fallbackName,
     required String appPackage,
     bool matchAnyApp = false,
     required String regexPattern,
@@ -111,6 +114,7 @@ class NotificationRulesRepository {
       await (_db.update(_db.notificationRules)..where((r) => r.id.equals(id))).write(
         NotificationRulesCompanion(
           name: Value(name),
+          fallbackName: Value(fallbackName),
           appPackage: Value(appPackage),
           matchAnyApp: Value(matchAnyApp),
           regexPattern: Value(regexPattern),

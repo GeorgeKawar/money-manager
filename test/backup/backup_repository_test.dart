@@ -111,6 +111,18 @@ void main() {
       expect(preview.transactions.single.description, isNull);
     });
 
+    test('still imports an older export missing NotificationRule.fallbackName (nullable column)', () async {
+      await addNotificationRule();
+      final decoded = jsonDecode(await repo.exportToJson()) as Map<String, dynamic>;
+      for (final rule in decoded['notificationRules'] as List) {
+        (rule as Map<String, dynamic>).remove('fallbackName');
+      }
+
+      final preview = repo.parseImport(jsonEncode(decoded));
+
+      expect(preview.notificationRules.single.fallbackName, isNull);
+    });
+
     test('still imports an older export missing Account.isDefault', () async {
       final decoded = jsonDecode(await repo.exportToJson()) as Map<String, dynamic>;
       for (final account in decoded['accounts'] as List) {

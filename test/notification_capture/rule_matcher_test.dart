@@ -5,6 +5,7 @@ import 'package:money_manager/features/notification_capture/domain/rule_matcher.
 NotificationRule _rule({
   int id = 1,
   String name = 'Test rule',
+  String? fallbackName,
   String appPackage = 'com.bank.app',
   bool matchAnyApp = false,
   String regexPattern = r'debited.*?([\d,]+\.\d{2})',
@@ -20,6 +21,7 @@ NotificationRule _rule({
   return NotificationRule(
     id: id,
     name: name,
+    fallbackName: fallbackName,
     appPackage: appPackage,
     matchAnyApp: matchAnyApp,
     isEnabled: true,
@@ -94,6 +96,29 @@ void main() {
         combinedText: 'debited 10.00',
       );
       expect(match!.note, 'My rule');
+    });
+
+    test('note falls back to fallbackName over the rule name when set', () {
+      final match = matchRules(
+        rules: [_rule(name: 'Bank X — card payment v2', fallbackName: 'Card payment', regexPattern: r'debited ([\d.]+)')],
+        combinedText: 'debited 10.00',
+      );
+      expect(match!.note, 'Card payment');
+    });
+
+    test('note uses the name group capture over fallbackName when it matches', () {
+      final match = matchRules(
+        rules: [
+          _rule(
+            fallbackName: 'Card payment',
+            regexPattern: r'(\w+) debited ([\d.]+)',
+            amountGroup: 2,
+            nameGroup: 1,
+          ),
+        ],
+        combinedText: 'Netflix debited 10.00',
+      );
+      expect(match!.note, 'Netflix');
     });
 
     test('note uses the name group capture when it matches', () {
@@ -194,6 +219,17 @@ void main() {
         ruleName: 'My rule',
       );
       expect(result.resolvedNote, 'My rule');
+    });
+
+    test('previews the resolved note using fallbackName over the rule name when set', () {
+      final result = testRule(
+        regexPattern: r'debited ([\d.]+)',
+        amountGroup: 1,
+        sampleText: 'debited 10.00',
+        ruleName: 'Bank X — card payment v2',
+        fallbackName: 'Card payment',
+      );
+      expect(result.resolvedNote, 'Card payment');
     });
 
     test('previews a successfully parsed date group', () {

@@ -1203,6 +1203,17 @@ class $NotificationRulesTable extends NotificationRules
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _fallbackNameMeta = const VerificationMeta(
+    'fallbackName',
+  );
+  @override
+  late final GeneratedColumn<String> fallbackName = GeneratedColumn<String>(
+    'fallback_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _appPackageMeta = const VerificationMeta(
     'appPackage',
   );
@@ -1420,6 +1431,7 @@ class $NotificationRulesTable extends NotificationRules
   List<GeneratedColumn> get $columns => [
     id,
     name,
+    fallbackName,
     appPackage,
     matchAnyApp,
     isEnabled,
@@ -1460,6 +1472,15 @@ class $NotificationRulesTable extends NotificationRules
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('fallback_name')) {
+      context.handle(
+        _fallbackNameMeta,
+        fallbackName.isAcceptableOrUnknown(
+          data['fallback_name']!,
+          _fallbackNameMeta,
+        ),
+      );
     }
     if (data.containsKey('app_package')) {
       context.handle(
@@ -1606,6 +1627,10 @@ class $NotificationRulesTable extends NotificationRules
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      fallbackName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fallback_name'],
+      ),
       appPackage: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}app_package'],
@@ -1687,6 +1712,7 @@ class NotificationRule extends DataClass
     implements Insertable<NotificationRule> {
   final int id;
   final String name;
+  final String? fallbackName;
   final String appPackage;
   final bool matchAnyApp;
   final bool isEnabled;
@@ -1707,6 +1733,7 @@ class NotificationRule extends DataClass
   const NotificationRule({
     required this.id,
     required this.name,
+    this.fallbackName,
     required this.appPackage,
     required this.matchAnyApp,
     required this.isEnabled,
@@ -1730,6 +1757,9 @@ class NotificationRule extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || fallbackName != null) {
+      map['fallback_name'] = Variable<String>(fallbackName);
+    }
     map['app_package'] = Variable<String>(appPackage);
     map['match_any_app'] = Variable<bool>(matchAnyApp);
     map['is_enabled'] = Variable<bool>(isEnabled);
@@ -1764,6 +1794,9 @@ class NotificationRule extends DataClass
     return NotificationRulesCompanion(
       id: Value(id),
       name: Value(name),
+      fallbackName: fallbackName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fallbackName),
       appPackage: Value(appPackage),
       matchAnyApp: Value(matchAnyApp),
       isEnabled: Value(isEnabled),
@@ -1802,6 +1835,7 @@ class NotificationRule extends DataClass
     return NotificationRule(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      fallbackName: serializer.fromJson<String?>(json['fallbackName']),
       appPackage: serializer.fromJson<String>(json['appPackage']),
       matchAnyApp: serializer.fromJson<bool>(json['matchAnyApp']),
       isEnabled: serializer.fromJson<bool>(json['isEnabled']),
@@ -1827,6 +1861,7 @@ class NotificationRule extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'fallbackName': serializer.toJson<String?>(fallbackName),
       'appPackage': serializer.toJson<String>(appPackage),
       'matchAnyApp': serializer.toJson<bool>(matchAnyApp),
       'isEnabled': serializer.toJson<bool>(isEnabled),
@@ -1850,6 +1885,7 @@ class NotificationRule extends DataClass
   NotificationRule copyWith({
     int? id,
     String? name,
+    Value<String?> fallbackName = const Value.absent(),
     String? appPackage,
     bool? matchAnyApp,
     bool? isEnabled,
@@ -1870,6 +1906,7 @@ class NotificationRule extends DataClass
   }) => NotificationRule(
     id: id ?? this.id,
     name: name ?? this.name,
+    fallbackName: fallbackName.present ? fallbackName.value : this.fallbackName,
     appPackage: appPackage ?? this.appPackage,
     matchAnyApp: matchAnyApp ?? this.matchAnyApp,
     isEnabled: isEnabled ?? this.isEnabled,
@@ -1894,6 +1931,9 @@ class NotificationRule extends DataClass
     return NotificationRule(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      fallbackName: data.fallbackName.present
+          ? data.fallbackName.value
+          : this.fallbackName,
       appPackage: data.appPackage.present
           ? data.appPackage.value
           : this.appPackage,
@@ -1935,6 +1975,7 @@ class NotificationRule extends DataClass
     return (StringBuffer('NotificationRule(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('fallbackName: $fallbackName, ')
           ..write('appPackage: $appPackage, ')
           ..write('matchAnyApp: $matchAnyApp, ')
           ..write('isEnabled: $isEnabled, ')
@@ -1960,6 +2001,7 @@ class NotificationRule extends DataClass
   int get hashCode => Object.hash(
     id,
     name,
+    fallbackName,
     appPackage,
     matchAnyApp,
     isEnabled,
@@ -1984,6 +2026,7 @@ class NotificationRule extends DataClass
       (other is NotificationRule &&
           other.id == this.id &&
           other.name == this.name &&
+          other.fallbackName == this.fallbackName &&
           other.appPackage == this.appPackage &&
           other.matchAnyApp == this.matchAnyApp &&
           other.isEnabled == this.isEnabled &&
@@ -2006,6 +2049,7 @@ class NotificationRule extends DataClass
 class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
   final Value<int> id;
   final Value<String> name;
+  final Value<String?> fallbackName;
   final Value<String> appPackage;
   final Value<bool> matchAnyApp;
   final Value<bool> isEnabled;
@@ -2026,6 +2070,7 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
   const NotificationRulesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.fallbackName = const Value.absent(),
     this.appPackage = const Value.absent(),
     this.matchAnyApp = const Value.absent(),
     this.isEnabled = const Value.absent(),
@@ -2047,6 +2092,7 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
   NotificationRulesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.fallbackName = const Value.absent(),
     required String appPackage,
     this.matchAnyApp = const Value.absent(),
     this.isEnabled = const Value.absent(),
@@ -2072,6 +2118,7 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
   static Insertable<NotificationRule> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<String>? fallbackName,
     Expression<String>? appPackage,
     Expression<bool>? matchAnyApp,
     Expression<bool>? isEnabled,
@@ -2093,6 +2140,7 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (fallbackName != null) 'fallback_name': fallbackName,
       if (appPackage != null) 'app_package': appPackage,
       if (matchAnyApp != null) 'match_any_app': matchAnyApp,
       if (isEnabled != null) 'is_enabled': isEnabled,
@@ -2116,6 +2164,7 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
   NotificationRulesCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
+    Value<String?>? fallbackName,
     Value<String>? appPackage,
     Value<bool>? matchAnyApp,
     Value<bool>? isEnabled,
@@ -2137,6 +2186,7 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
     return NotificationRulesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      fallbackName: fallbackName ?? this.fallbackName,
       appPackage: appPackage ?? this.appPackage,
       matchAnyApp: matchAnyApp ?? this.matchAnyApp,
       isEnabled: isEnabled ?? this.isEnabled,
@@ -2165,6 +2215,9 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (fallbackName.present) {
+      map['fallback_name'] = Variable<String>(fallbackName.value);
     }
     if (appPackage.present) {
       map['app_package'] = Variable<String>(appPackage.value);
@@ -2225,6 +2278,7 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
     return (StringBuffer('NotificationRulesCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('fallbackName: $fallbackName, ')
           ..write('appPackage: $appPackage, ')
           ..write('matchAnyApp: $matchAnyApp, ')
           ..write('isEnabled: $isEnabled, ')
@@ -5260,6 +5314,7 @@ typedef $$NotificationRulesTableCreateCompanionBuilder =
     NotificationRulesCompanion Function({
       Value<int> id,
       required String name,
+      Value<String?> fallbackName,
       required String appPackage,
       Value<bool> matchAnyApp,
       Value<bool> isEnabled,
@@ -5282,6 +5337,7 @@ typedef $$NotificationRulesTableUpdateCompanionBuilder =
     NotificationRulesCompanion Function({
       Value<int> id,
       Value<String> name,
+      Value<String?> fallbackName,
       Value<String> appPackage,
       Value<bool> matchAnyApp,
       Value<bool> isEnabled,
@@ -5396,6 +5452,11 @@ class $$NotificationRulesTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fallbackName => $composableBuilder(
+    column: $table.fallbackName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5565,6 +5626,11 @@ class $$NotificationRulesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get fallbackName => $composableBuilder(
+    column: $table.fallbackName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get appPackage => $composableBuilder(
     column: $table.appPackage,
     builder: (column) => ColumnOrderings(column),
@@ -5701,6 +5767,11 @@ class $$NotificationRulesTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get fallbackName => $composableBuilder(
+    column: $table.fallbackName,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get appPackage => $composableBuilder(
     column: $table.appPackage,
@@ -5870,6 +5941,7 @@ class $$NotificationRulesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String?> fallbackName = const Value.absent(),
                 Value<String> appPackage = const Value.absent(),
                 Value<bool> matchAnyApp = const Value.absent(),
                 Value<bool> isEnabled = const Value.absent(),
@@ -5890,6 +5962,7 @@ class $$NotificationRulesTableTableManager
               }) => NotificationRulesCompanion(
                 id: id,
                 name: name,
+                fallbackName: fallbackName,
                 appPackage: appPackage,
                 matchAnyApp: matchAnyApp,
                 isEnabled: isEnabled,
@@ -5912,6 +5985,7 @@ class $$NotificationRulesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
+                Value<String?> fallbackName = const Value.absent(),
                 required String appPackage,
                 Value<bool> matchAnyApp = const Value.absent(),
                 Value<bool> isEnabled = const Value.absent(),
@@ -5932,6 +6006,7 @@ class $$NotificationRulesTableTableManager
               }) => NotificationRulesCompanion.insert(
                 id: id,
                 name: name,
+                fallbackName: fallbackName,
                 appPackage: appPackage,
                 matchAnyApp: matchAnyApp,
                 isEnabled: isEnabled,

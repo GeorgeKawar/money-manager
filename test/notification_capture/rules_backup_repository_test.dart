@@ -1,4 +1,6 @@
-import 'package:drift/drift.dart';
+import 'dart:convert';
+
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:money_manager/core/database/database.dart';
@@ -23,6 +25,7 @@ void main() {
 
   Future<int> addRule({
     required String name,
+    String? fallbackName,
     required int defaultAccountId,
     int? defaultCategoryId,
     String appPackage = 'com.bank.app',
@@ -32,6 +35,7 @@ void main() {
     return db.into(db.notificationRules).insert(
           NotificationRulesCompanion.insert(
             name: name,
+            fallbackName: Value(fallbackName),
             appPackage: appPackage,
             matchAnyApp: Value(matchAnyApp),
             regexPattern: regexPattern,
@@ -63,6 +67,35 @@ void main() {
       expect(rules.single.name, 'Bank rule');
       expect(rules.single.defaultAccountId, 1);
       expect(rules.single.defaultCategoryId, foodId);
+    });
+
+    test('round-trips a rule\'s fallbackName', () async {
+      await addRule(name: 'Bank X — card payment v2', fallbackName: 'Card payment', defaultAccountId: 1);
+      final json = await repo.exportToJson();
+      await db.delete(db.notificationRules).go();
+
+      final preview = await repo.parseImport(json);
+      expect(preview.importable.single.fallbackName, 'Card payment');
+
+      await repo.applyImport(preview);
+      final rules = await db.select(db.notificationRules).get();
+      expect(rules.single.fallbackName, 'Card payment');
+    });
+
+    test('still imports an older export missing fallbackName (nullable column)', () async {
+      await addRule(name: 'Bank rule', defaultAccountId: 1);
+      final decoded = jsonDecode(await repo.exportToJson()) as Map<String, dynamic>;
+      for (final raw in decoded['rules'] as List) {
+        ((raw as Map<String, dynamic>)['rule'] as Map<String, dynamic>).remove('fallbackName');
+      }
+      await db.delete(db.notificationRules).go();
+
+      final preview = await repo.parseImport(jsonEncode(decoded));
+      expect(preview.importable.single.fallbackName, isNull);
+
+      await repo.applyImport(preview);
+      final rules = await db.select(db.notificationRules).get();
+      expect(rules.single.fallbackName, isNull);
     });
   });
 
