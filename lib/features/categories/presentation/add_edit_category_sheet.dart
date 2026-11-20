@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/database/database.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/category_style.dart';
 import '../../../core/widgets/sheet_widgets.dart';
 import '../data/categories_repository.dart';
 
@@ -36,6 +37,8 @@ class _AddEditCategorySheet extends ConsumerStatefulWidget {
 class _AddEditCategorySheetState extends ConsumerState<_AddEditCategorySheet> {
   final _nameController = TextEditingController();
   late String _type;
+  String? _iconKey;
+  int? _colorValue;
 
   bool get _isEditing => widget.existing != null;
 
@@ -45,6 +48,8 @@ class _AddEditCategorySheetState extends ConsumerState<_AddEditCategorySheet> {
     _type = widget.existing?.type ?? widget.initialType;
     if (widget.existing != null) {
       _nameController.text = widget.existing!.name;
+      _iconKey = widget.existing!.icon;
+      _colorValue = widget.existing!.color;
     }
   }
 
@@ -57,6 +62,8 @@ class _AddEditCategorySheetState extends ConsumerState<_AddEditCategorySheet> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final previewColor = _colorValue != null ? Color(_colorValue!) : categoryStyle(widget.existing).color;
+    final previewIcon = categoryIconChoices[_iconKey] ?? categoryStyle(widget.existing).icon;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -75,6 +82,13 @@ class _AddEditCategorySheetState extends ConsumerState<_AddEditCategorySheet> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(color: previewColor.withValues(alpha: 0.18), shape: BoxShape.circle),
+                    child: Icon(previewIcon, color: previewColor, size: 18),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       _isEditing ? 'Edit category' : 'New category',
@@ -109,6 +123,54 @@ class _AddEditCategorySheetState extends ConsumerState<_AddEditCategorySheet> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              const SheetFieldLabel('Color'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: categoryColorChoices.map((color) {
+                  final selected = _colorValue == color.toARGB32();
+                  return InkWell(
+                    onTap: () => setState(() => _colorValue = color.toARGB32()),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: selected ? colors.textPrimary : Colors.transparent, width: 2),
+                      ),
+                      child: selected ? Icon(Icons.check, color: colors.onAccent, size: 18) : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              const SheetFieldLabel('Icon'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: categoryIconChoices.entries.map((entry) {
+                  final selected = _iconKey == entry.key;
+                  return InkWell(
+                    onTap: () => setState(() => _iconKey = entry.key),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: selected ? colors.accent.withValues(alpha: 0.15) : colors.surfaceVariant,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: selected ? colors.accent : Colors.transparent, width: 1.5),
+                      ),
+                      child: Icon(entry.value, color: selected ? colors.accent : colors.textSecondary, size: 18),
+                    ),
+                  );
+                }).toList(),
+              ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -127,6 +189,18 @@ class _AddEditCategorySheetState extends ConsumerState<_AddEditCategorySheet> {
                     child: Text('Archive', style: TextStyle(color: colors.expense)),
                   ),
                 ),
+                // Only offered once nothing references this category — see
+                // CategoriesRepository.isUnused.
+                if (ref.watch(categoryIsUnusedProvider(widget.existing!.id)).value ?? false) ...[
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: _delete,
+                      child: Text('Delete permanently', style: TextStyle(color: colors.expense)),
+                    ),
+                  ),
+                ],
               ],
             ],
           ),
@@ -142,9 +216,9 @@ class _AddEditCategorySheetState extends ConsumerState<_AddEditCategorySheet> {
 
     final repo = ref.read(categoriesRepositoryProvider);
     if (_isEditing) {
-      await repo.updateCategory(widget.existing!.id, name: name);
+      await repo.updateCategory(widget.existing!.id, name: name, icon: _iconKey, color: _colorValue);
     } else {
-      await repo.addCategory(name: name, type: _type);
+      await repo.addCategory(name: name, type: _type, icon: _iconKey, color: _colorValue);
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -163,6 +237,26 @@ class _AddEditCategorySheetState extends ConsumerState<_AddEditCategorySheet> {
     );
     if (confirmed != true) return;
     await ref.read(categoriesRepositoryProvider).archiveCategory(widget.existing!.id);
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _delete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete category?'),
+        content: Text(
+          '"${widget.existing!.name}" has no transactions or recurring/rule references, so it will be removed '
+          'completely rather than archived. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Delete')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(categoriesRepositoryProvider).deleteCategory(widget.existing!.id);
     if (mounted) Navigator.of(context).pop();
   }
 }

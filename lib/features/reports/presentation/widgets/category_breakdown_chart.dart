@@ -57,7 +57,7 @@ class CategoryBreakdownChart extends StatelessWidget {
                   for (final item in items)
                     PieChartSectionData(
                       value: item.amountMinorUnits.toDouble(),
-                      color: categoryStyle(item.category?.name).color,
+                      color: categoryStyle(item.category).color,
                       radius: 44,
                       showTitle: false,
                     ),
@@ -87,7 +87,7 @@ class _LegendRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final style = categoryStyle(item.category?.name);
+    final style = categoryStyle(item.category);
     final percent = total == 0 ? 0 : (item.amountMinorUnits / total * 100).round();
 
     return Row(

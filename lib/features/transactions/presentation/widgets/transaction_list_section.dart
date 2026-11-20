@@ -92,7 +92,7 @@ class TransactionRow extends ConsumerWidget {
     final isIncome = txn.type == 'income';
     final signColor = isIncome ? colors.income : colors.expense;
     final sign = isIncome ? '+' : '-';
-    final style = categoryStyle(item.category?.name);
+    final style = categoryStyle(item.category);
 
     return InkWell(
       onTap: onTap,

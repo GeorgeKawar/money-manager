@@ -47,7 +47,7 @@ class CategoriesScreen extends ConsumerWidget {
                           separatorBuilder: (_, __) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final category = filtered[index];
-                            final style = categoryStyle(category.name);
+                            final style = categoryStyle(category);
                             return InkWell(
                               onTap: () => showAddEditCategorySheet(context, existing: category),
                               borderRadius: BorderRadius.circular(20),

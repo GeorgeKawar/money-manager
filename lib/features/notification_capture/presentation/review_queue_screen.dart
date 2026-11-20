@@ -56,7 +56,7 @@ class _ReviewRow extends ConsumerWidget {
     final isIncome = txn.type == 'income';
     final signColor = isIncome ? colors.income : colors.expense;
     final sign = isIncome ? '+' : '-';
-    final style = categoryStyle(item.categoryName);
+    final style = categoryStyle(item.category);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -105,7 +105,7 @@ class _ReviewRow extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      txn.note?.isNotEmpty == true ? txn.note! : (item.categoryName ?? 'Uncategorized'),
+                      txn.note?.isNotEmpty == true ? txn.note! : (item.category?.name ?? 'Uncategorized'),
                       style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis,
                     ),

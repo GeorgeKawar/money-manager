@@ -9,11 +9,11 @@ import '../../../core/database/database_provider.dart';
 /// docs/features/notification-capture.md "Review queue (per-rule, not
 /// global)".
 class ReviewQueueItem {
-  const ReviewQueueItem({required this.transaction, required this.accountName, required this.categoryName});
+  const ReviewQueueItem({required this.transaction, required this.accountName, required this.category});
 
   final Transaction transaction;
   final String accountName;
-  final String? categoryName;
+  final Category? category;
 
   /// True when this item was forced into the review queue because it
   /// looked like a redelivered duplicate of an existing transaction, not
@@ -40,7 +40,7 @@ class ReviewQueueRepository {
           .map((row) => ReviewQueueItem(
                 transaction: row.readTable(_db.transactions),
                 accountName: row.readTable(_db.accounts).name,
-                categoryName: row.readTableOrNull(_db.categories)?.name,
+                category: row.readTableOrNull(_db.categories),
               ))
           .toList();
     });
